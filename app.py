@@ -29,7 +29,11 @@ config = toml.load(".streamlit/config.toml")
 
 ### AI ASSISTANT CODE ###
 # handling extreme dangerous or trickly situations by redirecting to speaking a human therapist
-SPEAK_TO_HUMAN_TEXT = "It appears that you mentioned a very serious topic (i.e., suicide, inflict harm on your self and others, violence) in conversation and I recommend reaching out to a human therapist."
+SPEAK_TO_HUMAN_TEXT = (
+    "It appears that you mentioned a very serious topic "
+    "(i.e., suicide, inflict harm on your self and others, violence) "
+    "in the conversation and I recommend reaching out to a human therapist."
+)
 def extreme_serious_input(prompt: str) -> bool:
     """
     It will analyze the prompt for any extreme serious key words and make discussion come to a close
@@ -233,6 +237,10 @@ if st.session_state.messages[-1]["role"] != "assistant":
                         st.session_state.user_name = user_name
                     if st.session_state.user_gender == "undetermined" and user_gender.lower() != "undetermined":
                         st.session_state.user_gender = user_gender
+                        # update previous message icon
+                        for message in st.session_state.messages:
+                            if message["role"] == "user":
+                                message["icon"] = f"{st.session_state.user_gender}_user_avatar"
 
                     log.info((
                         f"User Information: " 
