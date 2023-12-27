@@ -189,28 +189,12 @@ def custom_assistant(
             "content": prompt,
         }
     )
-    st.write(processed_messages)
-
-    return "testing"
 
     response = openai_client.chat.completions.create(
         messages=processed_messages,
         model=model,
     )
     return response.choices[0].message.content
-
-
-    response = (
-        f"Hi {user_name}. Your gender is {user_gender}. "
-        f"Your issue is {user_issue}. "
-        f"The number of messages is {len(messages)} "
-        f"The start message index is {start_session_message_id}"
-    )
-
-    return response
-
-# def custom_assistant(prompt: str, context: str = "You are a helpful assistant.") -> str:
-#     return "Not Programmed Yet!"
 
 specific_issue_context = {
     "anxiety": (
