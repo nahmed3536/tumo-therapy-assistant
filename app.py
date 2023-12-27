@@ -349,7 +349,7 @@ if st.session_state.messages[-1]["role"] != "assistant":
                         st.session_state.user_gender, 
                         st.session_state.user_issue, 
                         st.session_state.messages,
-                        st.start_session_message_id
+                        st.session_state.start_session_message_id
                     )
             
             # write response
