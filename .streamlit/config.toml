@@ -7,5 +7,5 @@ font="serif"
 
 [custom]
 assistant_avatar="https://raw.githubusercontent.com/nahmed3536/tumo-therapy-assistant/235c6c2102590002cca57b1f595cae10987a00cd/images/therapist_icon.png"
-male_user_avatar=
-female_user_avatar=
+male_user_avatar="https://raw.githubusercontent.com/nahmed3536/tumo-therapy-assistant/main/images/male_icon.png"
+female_user_avatar="https://raw.githubusercontent.com/nahmed3536/tumo-therapy-assistant/main/images/female_icon.png"
