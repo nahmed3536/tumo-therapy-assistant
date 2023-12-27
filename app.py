@@ -166,7 +166,7 @@ def custom_assistant(
     """
     # get the messages relevant to session
     processed_messages = [
-        {"role": message["role"], "content": message["content"]} for message in messages[start_session_message_id:-1]
+        {"role": message["role"], "content": message["content"]} for message in messages[start_session_message_id - 3:-1]
     ]
     # bring the context to the fore front so the model doesn't forget (second to last message)
     if user_gender == "other": user_gender == "non-binary or not specified"
@@ -352,10 +352,12 @@ if st.session_state.messages[-1]["role"] != "assistant":
                     else:
                         response = f"Welcome {st.session_state.user_name} to the session! It's great to meet you! How can I help today?"
                 else:
+                    # identify issue
                     if not st.session_state.user_issue:
                         st.session_state.user_issue = classify_patient(prompt, st.session_state.user_gender)
                         st.session_state.start_session_message_id = len(st.session_state.messages) - 1
 
+                    # personalized response
                     response = custom_assistant(
                         prompt, 
                         st.session_state.user_name, 
@@ -364,9 +366,6 @@ if st.session_state.messages[-1]["role"] != "assistant":
                         st.session_state.messages,
                         st.start_session_message_id
                     )
-                    # else:
-                    #     # response = custom_assistant(prompt)
-                    #     response = "Not programmed yet"
             
             # write response
             st.write(response)
