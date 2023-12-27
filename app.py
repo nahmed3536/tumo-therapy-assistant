@@ -36,6 +36,38 @@ def extreme_serious_input(prompt: str) -> bool:
     return False
 
 
+# setting OpenAI's ChatGPT API
+import os
+import openai
+
+openai_client = openai.OpenAI(
+    api_key=os.environ['OPENAI_API_KEY'],
+)
+
+def chatgpt(prompt: str, context: str = "You are a helpful assistant.", model: str = "gpt-3.5-turbo") -> str:
+    response = openai_client.chat.completions.create(
+        messages=[
+            {
+                "role": "system",
+                "content": context,
+            },
+             {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        model=model,
+    )
+    return response.choices[0].message.content
+
+# identification function powered by LLMs
+def identify_user(prompt: str) -> tuple[str, str]:
+    """
+    From the prompt, figure out the name and gender of the user
+    """
+    return "Albert", "male"
+
+# custom assistant for therapy with memory
 def assistant(prompt: str, context: str = "You are a helpful assistant.") -> str:
     return "Not Programmed Yet!"
 
@@ -48,6 +80,10 @@ context = ""
 # safety variable
 if "speak_to_human" not in st.session_state: st.session_state.speak_to_human = False
 
+# keep track of user information (name and gender)
+if "user_name" not in st.session_state: st.session_state.user_name = None
+if "user_gender" not in st.session_state: st.session_state.user_gender = None
+
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
     st.session_state.messages = [
@@ -55,8 +91,8 @@ if "messages" not in st.session_state.keys():
             "role": "assistant", 
             "content": (
                 "Hello, I'm Arpi, your AI therapist! "
-                "I'm here to support you on your journey on "
-                "mental well-being. How are you feeling today? "
+                "I'm here to support you on your journey on mental well-being. "
+                "Before we begin, what is your name and preferred pronouns? "
             )
         }
     ]
