@@ -113,15 +113,102 @@ def identify_user(prompt: str) -> tuple[str, str]:
     return user_name, user_gender
 
 # custom assistant for therapy with memory
-def custom_assistant(prompt: str, context: str = "You are a helpful assistant.") -> str:
-    return "Not Programmed Yet!"
-
-classify_instruction = (
-        "You are a therapist and you goal is to identify the type of issue the user is having.",
-        "Please classify the issue in the following categories: `anxiety`, `depression`, `stress`, `relationships`, `trauma`, `self-esteem`, and `other`. ",
+def classify_patient(prompt: str, user_gender: str) -> str:
+    """
+    After the user identifies themselve, we classify the type of issue
+    """
+    classify_instruction = (
+        "You are a therapist and you goal is to identify the type of issue the user is having. "
+        "Please classify the issue in the following categories: `anxiety`, `depression`, `stress`, `relationships`, `trauma`, `self-esteem`, and `other`. "
         "Please choose the best category for the prompt and answer with just the single word category. "
-        "For example, if the user says 'I have a lot of work', please answer with 'stress'",
+        "For example, if the user says 'I have a lot of work', please answer with 'stress' "
+        "For example, if the user says 'My marriage is stressful', please answer with 'relationships' "
+        "Here are some keywords to also associate with each category:\n"
+        "Anxiety keywords: worried, nervous, anxious, panic, fear\n"
+        "Depression keywords: sad, hopeless, down, depressed, loss of interest\n"
+        "Stress keywords: overwhelmed, pressure, tense, stressed, irritable\n"
+        "Relationships keywords: conflict, communication, breakup, loneliness, isolation\n"
+        "Trauma keywords: abuse, assault, accident, disaster, PTSD\n"
+        "Self-esteem keywords: confidence, worth, insecurity, self-doubt, negative thoughts\n"
+        "Anything else falls into the other category\n"
+        "Only answer with the word corresponding to the best category"
     )
+
+    # ask several times until it gets it right
+    prompt = f"The patient identifies as a {user_gender} and their message to you is: {prompt}"
+
+    for _ in range(3):
+        results = chatgpt(prompt, classify_instruction).lower().strip()
+        if results in ["anxiety", "depression", "stress", "relationships", "trauma", "self-esteem", "other"]:
+            break
+    else:
+        results = "other"
+
+    return results
+
+def custom_assistant(
+    prompt: str, 
+    user_name: str, 
+    user_gender: str, 
+    user_issue: str,
+    messages: list[dict[str, str]],
+    start_session_message_id: int) -> str:
+    """
+    Generates personalized response based on the user's information
+
+    Parameters:
+        prompt: their latest message
+        user_name: the user name
+        user_gender: the user gender
+        user_issue: the user issue
+        messages: list of all messages (including of the prompt)
+        start_session_message_id: index of the message list after the user identifies themselves
+    """
+    # get the messages relevant to session
+    processed_messages = [
+        {"role": message["role"], "content": message["content"]} for message in messages[start_session_message_id:]
+    ]
+    # bring the context to the fore front so the model doesn't forget
+    context = ""
+    processed_messages.append(
+        {
+            "role": "system",
+            "content": context,
+        }
+    )   
+    st.write(processed_messages)
+    st.info(processed_messages)
+
+    return "testing"
+
+    response = openai_client.chat.completions.create(
+        messages=[
+            {
+                "role": "system",
+                "content": context,
+            },
+             {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        model=model,
+    )
+    return response.choices[0].message.content
+
+
+    response = (
+        f"Hi {user_name}. Your gender is {user_gender}. "
+        f"Your issue is {user_issue}. "
+        f"The number of messages is {len(messages)} "
+        f"The start message index is {start_session_message_id}"
+    )
+
+    return response
+
+# def custom_assistant(prompt: str, context: str = "You are a helpful assistant.") -> str:
+#     return "Not Programmed Yet!"
+
 specific_context = {
     "anxiety": (
         "You are a friendly therapist in a session with a patient who is dealing with anxiety. "
@@ -158,7 +245,8 @@ specific_context = {
     "other": (
         "You are a friendly therapist in a session with a patient. "
         "Please help them feel better, understand their feelings, and provide strategies to mitigate their problems. "
-        "Please be helpful and if there's a topic that doesn't seem appropraite to a therapy session, please defer from answering and refer them to a human therapist."
+        "Please be helpful and if there's a topic that doesn't seem appropraite to a therapy session, "
+        "please defer from answering and refer them to a human therapist."
     )
 }
 
@@ -172,6 +260,10 @@ if "speak_to_human" not in st.session_state: st.session_state.speak_to_human = F
 # keep track of user information (name and gender)
 if "user_name" not in st.session_state: st.session_state.user_name = "undetermined"
 if "user_gender" not in st.session_state: st.session_state.user_gender = "undetermined"
+
+# keep track of patient issue (type of issue) and start of the messages
+if "user_issue" not in st.session_state: st.session_state.user_issue = None 
+if "start_session_message_id" not in st.session_state: st.session_state.user_issue = 0
 
 log.info((
     f"Initialized Session Variables: " 
@@ -257,8 +349,21 @@ if st.session_state.messages[-1]["role"] != "assistant":
                     else:
                         response = f"Welcome {st.session_state.user_name} to the session! It's great to meet you! How can I help today?"
                 else:
-                    # response = custom_assistant(prompt)
-                    response = "Not programmed yet"
+                    if not st.session_state.user_issue:
+                        st.session_state.user_issue = classify_patient(prompt, st.session_state.user_gender)
+                        st.start_session_message_id = len(st.session_state.messages) - 1
+                    
+                    response = custom_assistant(
+                        prompt, 
+                        st.session_state.user_name, 
+                        st.session_state.user_gender, 
+                        st.session_state.user_issue, 
+                        st.session_state.messages,
+                        st.start_session_message_id
+                    )
+                    # else:
+                    #     # response = custom_assistant(prompt)
+                    #     response = "Not programmed yet"
             
             # write response
             st.write(response)
