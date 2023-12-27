@@ -65,10 +65,33 @@ def identify_user(prompt: str) -> tuple[str, str]:
     """
     From the prompt, figure out the name and gender of the user
     """
-    return "Albert", "male"
+    context = (
+        "Instructions: given the prompt, your goal is to extract the name and gender of the user. "
+        "Only return the name (first letter should be capital) and the gender separated by a comma. "
+        "The options for gender are either 'male' or 'female', no other options. "
+        "If they identify as non-binary or some other gender, default to 'male'. "
+        "If either the name or gender can't be determine, return 'undetermined' for that value. "
+        "Here's an example, if the prompt is 'I'm albert and my pronouns are he/him/his', "
+        "return 'Albert,male' in this exact manner."
+        "Here's another example, if the prompt is 'I'm albert', return 'Albert,undetermined' "
+        "because the name is Albert and the gender is not specified."
+        "Here's another example, if the prompt is 'I'm albert and I use the they series', return 'Albert,male' "
+        "because the name is Albert and the gender is non-binary which should be defaulted to male."
+    )
+    # expects name,gender
+    results = chatgpt(prompt, context)
+
+    try:
+        results = results.split(",")
+        user_name = results[0].strip().lower()
+        user_gender = results[1].strip().lower()
+    except:
+        user_name, user_gender = "undetermined", "undetermined" 
+    
+    return user_name, user_gender
 
 # custom assistant for therapy with memory
-def assistant(prompt: str, context: str = "You are a helpful assistant.") -> str:
+def custom_assistant(prompt: str, context: str = "You are a helpful assistant.") -> str:
     return "Not Programmed Yet!"
 
 context = ""
@@ -81,8 +104,8 @@ context = ""
 if "speak_to_human" not in st.session_state: st.session_state.speak_to_human = False
 
 # keep track of user information (name and gender)
-if "user_name" not in st.session_state: st.session_state.user_name = None
-if "user_gender" not in st.session_state: st.session_state.user_gender = None
+if "user_name" not in st.session_state: st.session_state.user_name = "undetermined"
+if "user_gender" not in st.session_state: st.session_state.user_gender = "undetermined"
 
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
@@ -120,7 +143,36 @@ if st.session_state.messages[-1]["role"] != "assistant":
             if st.session_state.speak_to_human:
                 response = SPEAK_TO_HUMAN_TEXT
             else:
-                response = custom_assistant(prompt, context)
+                # check if name and gender populated 
+                if st.session_state.user_name == "undetermined" or not st.session_state.user_gender == "undetermined":
+                    user_name, user_gender = identify_user(prompt)
+                    
+                    # handle the user inputs to update the states
+                    if user_name == "undetermined" and user_gender == "undetermined":
+                        pass
+                        response = "I'm sorry but I can't determine your name and preferred pronouns, could you share them again?"
+                    elif user_name != "undetermined" and user_gender == "undetermined":
+                        st.session_state.user_name = user_name
+                        response = f"Hi {st.session_state.user_name}, what are your preferred pronouns?"
+                    elif user_name == "undetermined" and user_gender != "undetermined":
+                        st.session_state.user_gender = user_gender
+                        response = "I couldn't catch your name - what should I call you?"
+                    else:
+                        st.session_state.user_name = user_name
+                        st.session_state.user_gender = user_gender
+                        response = f"Welcome {st.session_state.user_name} to the session! It's great to meet you! How can I help today?"
+
+                    # will update the response based what's recorded
+                    if st.session_state.user_name == "undetermined" and st.session_state.user_gender == "undetermined":
+                        response = "I'm sorry but I can't determine your name and preferred pronouns, could you share them again?"
+                    elif st.session_state.user_name != "undetermined" and st.session_state.user_gender == "undetermined":
+                        response = f"Hi {st.session_state.user_name}, what are your preferred pronouns?"
+                    elif st.session_state.user_name == "undetermined" and st.session_state.user_gender != "undetermined":
+                        response = "I couldn't catch your name - what should I call you?"
+                    else:
+                        response = f"Welcome {st.session_state.user_name} to the session! It's great to meet you! How can I help today?"
+                else:
+                    response = custom_assistant(prompt, context)
             
             # write response
             st.write(response)
