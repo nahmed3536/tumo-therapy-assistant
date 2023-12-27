@@ -213,7 +213,7 @@ if prompt := st.chat_input():
 # Generate a new response if last message is not from assistant
 if st.session_state.messages[-1]["role"] != "assistant":
     with st.chat_message("assistant", avatar=config["custom"]["assistant_avatar"]):
-        with st.spinner("Thinking..."):
+        with st.spinner("Thinking..."): 
             # only check if response is dangerous if `speak_to_human` is false; otherwise default to seeking human therapist for every conversation afterwards
             if not st.session_state.speak_to_human:
                 st.session_state.speak_to_human = extreme_serious_input(prompt)
