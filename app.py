@@ -1,5 +1,13 @@
 import streamlit as st
-title = "AI_ASSISTANT_NAME"
+
+### PAGE CONFIGURATION ###
+# set the page / tab title
+st.set_page_config(page_title="Arpi Therapy")
+
+# set the header
+st.header("Arpi Therapy")
+
+### PAGE CONFIGURATION ###
 
 ### AI ASSISTANT CODE ###
 def assistant(prompt: str, context: str = "You are a helpful assistant.") -> str:
@@ -11,8 +19,6 @@ context = ""
 
 
 ### WEBSITE CODE ###
-st.header(title)
-
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
     st.session_state.messages = [{"role": "assistant", "content": "How may I help you?"}]
