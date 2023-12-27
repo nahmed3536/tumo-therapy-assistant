@@ -166,32 +166,35 @@ def custom_assistant(
     """
     # get the messages relevant to session
     processed_messages = [
-        {"role": message["role"], "content": message["content"]} for message in messages[start_session_message_id:]
+        {"role": message["role"], "content": message["content"]} for message in messages[start_session_message_id:-1]
     ]
-    # bring the context to the fore front so the model doesn't forget
-    context = ""
+    # bring the context to the fore front so the model doesn't forget (second to last message)
+    if user_gender == "other": user_gender == "non-binary or not specified"
+    context = (
+        f"Your persona: {specific_issue_context[user_issue]}. "
+        f"Here's the patient information: "
+        f"their name is {user_name} and their gender is {user_gender}. "
+        f"As a friendly therapist, make sure to respond by using their name and right pronouns"
+    )
     processed_messages.append(
         {
             "role": "system",
             "content": context,
         }
     )   
+    # add the most current prompt
+    processed_messages.append(
+        {
+            "role": "user",
+            "content": prompt,
+        }
+    )
     st.write(processed_messages)
-    st.info(processed_messages)
 
     return "testing"
 
     response = openai_client.chat.completions.create(
-        messages=[
-            {
-                "role": "system",
-                "content": context,
-            },
-             {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
+        messages=processed_messages,
         model=model,
     )
     return response.choices[0].message.content
@@ -209,41 +212,41 @@ def custom_assistant(
 # def custom_assistant(prompt: str, context: str = "You are a helpful assistant.") -> str:
 #     return "Not Programmed Yet!"
 
-specific_context = {
+specific_issue_context = {
     "anxiety": (
-        "You are a friendly therapist in a session with a patient who is dealing with anxiety. "
-        "Try to figure what is causing there issue and understanding what is triggering thier anxiety"
-        "Also please provide anxiety reducing tips that are helpful and effectively"
+        "You are a friendly therapist named Arpi in a session with a patient who is dealing with anxiety. "
+        "Try to figure what is causing there issue and understanding what is triggering thier anxiety. "
+        "Also please provide anxiety reducing tips that are helpful and effectively."
     ),
     "depression": (
-        "You are a friendly therapist in a session with a patient who is dealing with depression. "
+        "You are a friendly therapist named Arpi in a session with a patient who is dealing with depression. "
         "Try to figure what the root cause of their depression and how manifests in their daily lives. "
         "Also please provide coping mechanisms and techniques to manage their depression. "
         "Also encourage the patient to develop healthy habits that reduce depression."
     ),
     "stress": (
-        "You are a friendly therapist in a session with a patient who is dealing with stress. "
+        "You are a friendly therapist named Arpi in a session with a patient who is dealing with stress. "
         "Please explore the sources of stress and help them find ways to manage it. "
-        "Please inquire what specific situations or tasks are causing the stress? "
+        "Please inquire what specific situations or tasks are causing the stress?"
         "Provide techniques to help manage the stress."
     ),
     "relationships": (
-        "You are a friendly therapist in a session with a patient who is dealing with relationships. "
+        "You are a friendly therapist named Arpi in a session with a patient who is dealing with relationships. "
         "Try to understand the relationship and provide suggestion based on who the relationship is with. "
-        "For example, consider how a therapist might work with a parental issue versus a spouse or significant other issue. "
+        "For example, consider how a therapist might work with a parental issue versus a spouse or significant other issue."
     ),
     "trauma": (
-        "You are a friendly therapist in a session with a patient who is dealing with trauma. "
+        "You are a friendly therapist named Arpi in a session with a patient who is dealing with trauma. "
         "Provide suggestions and tips based on their trauma but be sensitive to their issues. "
-        "Make sure they feel comfortable and slowly help them uncover their trauma. "
+        "Make sure they feel comfortable and slowly help them uncover their trauma."
     ),
     "self-esteem": (
-        "You are a friendly therapist in a session with a patient who is dealing with self-esteem. "
+        "You are a friendly therapist named Arpi in a session with a patient who is dealing with self-esteem. "
         "Understand what circumstances makes them insecure or feel less confident. "
         "Validate their feelings and help them develop strategies for building their confidence."
     ),
     "other": (
-        "You are a friendly therapist in a session with a patient. "
+        "You are a friendly therapist named Arpi in a session with a patient. "
         "Please help them feel better, understand their feelings, and provide strategies to mitigate their problems. "
         "Please be helpful and if there's a topic that doesn't seem appropraite to a therapy session, "
         "please defer from answering and refer them to a human therapist."
@@ -262,8 +265,8 @@ if "user_name" not in st.session_state: st.session_state.user_name = "undetermin
 if "user_gender" not in st.session_state: st.session_state.user_gender = "undetermined"
 
 # keep track of patient issue (type of issue) and start of the messages
-if "user_issue" not in st.session_state: st.session_state.user_issue = None 
-if "start_session_message_id" not in st.session_state: st.session_state.user_issue = 0
+if "user_issue" not in st.session_state: st.session_state.user_issue = None
+if "start_session_message_id" not in st.session_state: st.session_state.start_session_message_id = 0
 
 log.info((
     f"Initialized Session Variables: " 
@@ -351,8 +354,8 @@ if st.session_state.messages[-1]["role"] != "assistant":
                 else:
                     if not st.session_state.user_issue:
                         st.session_state.user_issue = classify_patient(prompt, st.session_state.user_gender)
-                        st.start_session_message_id = len(st.session_state.messages) - 1
-                    
+                        st.session_state.start_session_message_id = len(st.session_state.messages) - 1
+
                     response = custom_assistant(
                         prompt, 
                         st.session_state.user_name, 
