@@ -172,9 +172,10 @@ def custom_assistant(
     if user_gender == "other": user_gender == "non-binary or not specified"
     context = (
         f"Your persona: {specific_issue_context[user_issue]}. "
+        f"Response format: respond conversational and keep it short (around 50 words). It should feel like a conversation."
         f"Here's the patient information: "
         f"their name is {user_name} and their gender is {user_gender}. "
-        f"As a friendly therapist, make sure to respond by using their name and right pronouns"
+        f"As a friendly, conversational therapist, make sure to respond by using their name and right pronouns"
     )
     processed_messages.append(
         {
@@ -192,7 +193,7 @@ def custom_assistant(
 
     response = openai_client.chat.completions.create(
         messages=processed_messages,
-        model=model,
+        model="gpt-3.5-turbo",
     )
     return response.choices[0].message.content
 
