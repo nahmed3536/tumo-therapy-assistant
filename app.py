@@ -80,14 +80,16 @@ def identify_user(prompt: str) -> tuple[str, str]:
         "Instructions: given the prompt, your goal is to extract the first name and gender of the user. "
         "Only return the name and the gender separated by a comma. "
         "The options for gender are 'male', 'female', and 'other', no other options. "
-        "If they identify as non-binary or some other gender besides male or female, default to 'other'. "
+        "If they identify as non-binary, some other gender besides male or female, or don't want to share their gender, default to 'other'. "
         "If either the name or gender can't be determine, return 'undetermined' for that value. "
         "Here's an example, if the prompt is 'I'm albert and my pronouns are he/him/his', "
         "return 'Albert,male' in this exact manner."
         "Here's another example, if the prompt is 'I'm albert', return 'Albert,undetermined' "
-        "because the name is Albert and the gender is not specified."
+        "because the name is Albert and the gender is not specified or mentioned."
         "Here's another example, if the prompt is 'I'm albert and I use the they series', return 'Albert,other' "
         "because the name is Albert and the gender is non-binary which should be defaulted to other."
+        "Here's another example, if the prompt is 'i'm jacob and i don't want to share my gender' return 'Jacob,other'"
+        "because the name is Jacob and the user specified they don't want to share their gender."
     )
     # expects name,gender
     results = chatgpt(prompt, context)
