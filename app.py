@@ -269,7 +269,7 @@ if "messages" not in st.session_state.keys():
             "content": (
                 "Hello, I'm Arpi, your AI therapist! "
                 "I'm here to support you on your journey on mental well-being. "
-                "Before we begin, what is your name and preferred pronouns? "
+                "Before we begin, what is your name and preferred pronouns (he/she/they)? "
             )
         }
     ]
@@ -329,9 +329,9 @@ if st.session_state.messages[-1]["role"] != "assistant":
                     ))
                     # will update the response based what's recorded
                     if st.session_state.user_name == "undetermined" and st.session_state.user_gender == "undetermined":
-                        response = "Before I can help, what is your name and preferred pronouns, could you please share them?"
+                        response = "Before I can help, what is your name and preferred pronouns (he/she/they), could you please share them?"
                     elif st.session_state.user_name != "undetermined" and st.session_state.user_gender == "undetermined":
-                        response = f"Hi {st.session_state.user_name}, what are your preferred pronouns?"
+                        response = f"Hi {st.session_state.user_name}, what are your preferred pronouns (he/she/they)?"
                     elif st.session_state.user_name == "undetermined" and st.session_state.user_gender != "undetermined":
                         response = "I couldn't catch your name - what should I call you?"
                     else:
