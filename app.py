@@ -169,7 +169,7 @@ def custom_assistant(
         {"role": message["role"], "content": message["content"]} for message in messages[start_session_message_id - 3:-1]
     ]
     # bring the context to the fore front so the model doesn't forget (second to last message)
-    if user_gender == "other": user_gender == "non-binary or not specified"
+    if user_gender == "other": user_gender = "non-binary or not specified"
     context = (
         f"Your persona: {specific_issue_context[user_issue]}. "
         f"Response format: respond conversational and keep it short (around 50 words). It should feel like a conversation."
